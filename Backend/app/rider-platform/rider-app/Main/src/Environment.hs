@@ -99,7 +99,9 @@ data AppCfg = AppCfg
     cacheTranslationConfig :: CacheTranslationConfig,
     maxEmergencyNumberCount :: Int,
     minTripDistanceForReferralCfg :: Maybe HighPrecMeters,
-    registryMap :: M.Map Text BaseUrl
+    registryMap :: M.Map Text BaseUrl,
+    appPrefix :: Text,
+    snapToRoadSnippetThreshold :: HighPrecMeters
   }
   deriving (Generic, FromDhall)
 
@@ -145,7 +147,9 @@ data AppEnv = AppEnv
     cacheTranslationConfig :: CacheTranslationConfig,
     maxEmergencyNumberCount :: Int,
     minTripDistanceForReferralCfg :: Maybe HighPrecMeters,
-    registryMap :: M.Map Text BaseUrl
+    registryMap :: M.Map Text BaseUrl,
+    appPrefix :: Text,
+    snapToRoadSnippetThreshold :: HighPrecMeters
   }
   deriving (Generic)
 
