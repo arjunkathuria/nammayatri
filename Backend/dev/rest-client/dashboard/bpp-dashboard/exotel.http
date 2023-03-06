@@ -4,9 +4,11 @@ GET {{bpp-dashboard-host}}
 
 ###
 
+@exotelToken=some-secret-exotel-token
+
 # @name exotelHeartbeatOK
 
-POST {{bpp-dashboard-host}}/exotel/heartbeat
+POST {{bpp-dashboard-host}}/exotel/heartbeat?exotelToken={{exotelToken}}
 content-type: application/json
 
 {
@@ -24,7 +26,7 @@ content-type: application/json
 
 # @name exotelHeartbeatWARNING
 
-POST {{bpp-dashboard-host}}/exotel/heartbeat
+POST {{bpp-dashboard-host}}/exotel/heartbeat?exotelToken={{exotelToken}}
 content-type: application/json
 
 {
@@ -46,7 +48,7 @@ content-type: application/json
 
 # @name exotelHeartbeatCRITICAL
 
-POST {{bpp-dashboard-host}}/exotel/heartbeat
+POST {{bpp-dashboard-host}}/exotel/heartbeat?exotelToken={{exotelToken}}
 content-type: application/json
 
 {
