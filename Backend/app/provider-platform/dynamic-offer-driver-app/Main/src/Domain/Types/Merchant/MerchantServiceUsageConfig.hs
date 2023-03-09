@@ -34,6 +34,7 @@ data MerchantServiceUsageConfigD (s :: UsageSafety) = MerchantServiceUsageConfig
     getPlaceName :: MapsService,
     getPlaceDetails :: MapsService,
     autoComplete :: MapsService,
+    getNearBySearch :: MapsService,
     smsProvidersPriorityList :: [SmsService],
     whatsappProvidersPriorityList :: [WhatsappService],
     verificationService :: VerificationService,

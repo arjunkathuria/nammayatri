@@ -18,6 +18,7 @@ module Tools.Maps
     getDistance,
     getEstimatedPickupDistances,
     getDistances,
+    getNearBySearch,
     getPlaceDetails,
     getPlaceName,
     getRoutes,
@@ -34,6 +35,7 @@ import Kernel.External.Maps as Reexport hiding
   ( autoComplete,
     getDistance,
     getDistances,
+    getNearBySearch,
     getPlaceDetails,
     getPlaceName,
     getRoutes,
@@ -117,6 +119,9 @@ getPlaceName = runWithServiceConfig Maps.getPlaceName (.getPlaceName)
 
 getPlaceDetails :: (EncFlow m r, CacheFlow m r, EsqDBFlow m r, CoreMetrics m) => Id Merchant -> GetPlaceDetailsReq -> m GetPlaceDetailsResp
 getPlaceDetails = runWithServiceConfig Maps.getPlaceDetails (.getPlaceDetails)
+
+getNearBySearch :: (EncFlow m r, CacheFlow m r, EsqDBFlow m r, CoreMetrics m) => Id Merchant -> GetNearBySearchReq -> m Text
+getNearBySearch = runWithServiceConfig Maps.getNearBySearch (.getNearBySearch)
 
 runWithServiceConfig ::
   (EncFlow m r, CacheFlow m r, EsqDBFlow m r, CoreMetrics m) =>

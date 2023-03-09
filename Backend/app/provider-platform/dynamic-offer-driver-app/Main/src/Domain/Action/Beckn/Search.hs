@@ -244,7 +244,7 @@ buildSearchReqLocation DLoc.SearchReqLocationAPIEntity {..} = do
   now <- getCurrentTime
   let createdAt = now
       updatedAt = now
-  pure DLoc.SearchReqLocation {..}
+  pure DLoc.SearchReqLocation {isNearBySearchAPIUsed = False, ..}
 
 buildSearchRes ::
   (MonadTime m) =>
