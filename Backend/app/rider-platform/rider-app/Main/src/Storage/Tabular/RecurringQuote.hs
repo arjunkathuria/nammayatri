@@ -55,6 +55,7 @@ instance TType RecurringQuoteT Domain.RecurringQuote where
           providerUrl = pUrl,
           tripTerms = Nothing,
           quoteDetails = Domain.RecurringQuoteDetails distToNearest,
+          vehicleVariant = vehicleVariant,
           createdAt = createdAt
         }
 
