@@ -19,6 +19,7 @@ module SharedLogic.Allocator where
 
 import Data.Singletons.TH
 import qualified Domain.Types.SearchRequest as DSR
+import Domain.Types.Timetable (Timetable)
 import Kernel.Prelude
 import Kernel.Types.Common (Meters, Money)
 import Kernel.Types.Id
@@ -28,6 +29,7 @@ import Lib.Scheduler
 data AllocatorJobType
   = SendSearchRequestToDriver
   | UpdateRecurringBookingTimetable
+  | AllocateDriverForUpcomingRide
   deriving (Generic, FromDhall, Eq, Ord, Show, Read, FromJSON, ToJSON)
 
 genSingletons [''AllocatorJobType]
@@ -44,6 +46,13 @@ data SendSearchRequestToDriverJobData = SendSearchRequestToDriverJobData
   }
   deriving (Generic, Show, Eq, FromJSON, ToJSON)
 
+data AllocateDriverForUpcomingRideJobData = AllocateDriverForUpcomingRideJobData
+  { timetableId :: Id Timetable
+  }
+  deriving (Generic, ToJSON, FromJSON)
+
 type instance JobContent 'SendSearchRequestToDriver = SendSearchRequestToDriverJobData
 
 type instance JobContent 'UpdateRecurringBookingTimetable = ()
+
+type instance JobContent 'AllocateDriverForUpcomingRide = AllocateDriverForUpcomingRideJobData

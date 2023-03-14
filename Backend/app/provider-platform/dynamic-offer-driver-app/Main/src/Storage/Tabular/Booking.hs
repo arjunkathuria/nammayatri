@@ -67,8 +67,9 @@ instance TEntityKey BookingT where
   fromKey (BookingTKey _id) = Id _id
   toKey (Id id) = BookingTKey id
 
-instance TType BookingT Domain.SimpleBooking where
-  fromTType (BookingT {..}) = do
+instance TType (BookingT, Fare.FareParametersT) Domain.SimpleBooking where
+  fromTType (BookingT {..}, fareParamsT) = do
+    fareParams <- fromTType fareParamsT
     pUrl <- parseBaseUrl bapUri
     return $
       Domain.SimpleBooking
@@ -77,7 +78,6 @@ instance TType BookingT Domain.SimpleBooking where
           providerId = fromKey providerId,
           fromLocation = fromKey fromLocationId,
           toLocation = fromKey toLocationId,
-          fareParams = fromKey fareParametersId,
           bapUri = pUrl,
           riderId = fromKey <$> riderId,
           ..
@@ -91,9 +91,10 @@ instance TType BookingT Domain.SimpleBooking where
           toLocationId = toKey toLocation,
           bapUri = showBaseUrl bapUri,
           riderId = toKey <$> riderId,
-          fareParametersId = toKey fareParams,
+          fareParametersId = toKey fareParams.id,
           ..
-        }
+        },
+      toTType fareParams
     )
 
 instance TType (BookingT, BookingLocationT, BookingLocationT, Fare.FareParametersT) Domain.Booking where

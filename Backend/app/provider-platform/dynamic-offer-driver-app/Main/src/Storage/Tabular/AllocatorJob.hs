@@ -63,6 +63,8 @@ instance TType AllocatorJobT (ST.AnyJob AllocatorJobType) where
   fromTType AllocatorJobT {..} = do
     case toSing jobType of
       SomeSing SSendSearchRequestToDriver -> buildAnyJob SSendSearchRequestToDriver
+      SomeSing SAllocateDriverForUpcomingRide -> buildAnyJob SAllocateDriverForUpcomingRide
+      SomeSing SUpdateRecurringBookingTimetable -> buildAnyJob SUpdateRecurringBookingTimetable
     where
       buildAnyJob :: forall (e :: AllocatorJobType) m. (MonadThrow m, Log m, FromJSON (ST.JobContent e), ST.JobTypeConstaints e) => Sing e -> m (ST.AnyJob AllocatorJobType)
       buildAnyJob jt = do
@@ -80,6 +82,8 @@ instance TType AllocatorJobT (ST.AnyJob AllocatorJobType) where
     let ST.Job {jobType} = job
     case jobType of
       SSendSearchRequestToDriver -> mkAllocatorJobT @'SendSearchRequestToDriver $ unsafeCoerce job
+      SAllocateDriverForUpcomingRide -> mkAllocatorJobT @'AllocateDriverForUpcomingRide $ unsafeCoerce job
+      SUpdateRecurringBookingTimetable -> mkAllocatorJobT @'UpdateRecurringBookingTimetable $ unsafeCoerce job
     where
       mkAllocatorJobT :: forall (e :: AllocatorJobType). (ToJSON (ST.JobContent e), ST.JobTypeConstaints e) => ST.Job e -> AllocatorJobT
       mkAllocatorJobT ST.Job {..} = do

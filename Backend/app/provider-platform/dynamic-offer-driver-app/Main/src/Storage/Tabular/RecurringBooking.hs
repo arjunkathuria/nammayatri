@@ -63,9 +63,9 @@ instance TType RecurringBookingT Domain.SimpleRecurringBooking where
           providerId = providerId,
           bapId = bapId,
           bapUri = pBapUrl,
-          farePolicy = fromKey farePolicyId,
-          fromLocation = fromKey fromLocationId,
-          toLocation = fromKey toLocationId
+          farePolicyId = fromKey farePolicyId,
+          fromLocationId = fromKey fromLocationId,
+          toLocationId = fromKey toLocationId
         }
 
   toTType booking =
@@ -77,11 +77,11 @@ instance TType RecurringBookingT Domain.SimpleRecurringBooking where
         pickupTime = booking.pickupTime,
         status = booking.status,
         providerId = booking.providerId,
-        farePolicyId = toKey booking.farePolicy,
+        farePolicyId = toKey booking.farePolicyId,
         bapId = booking.bapId,
         bapUri = showBaseUrl booking.bapUri,
-        toLocationId = toKey booking.toLocation,
-        fromLocationId = toKey booking.fromLocation
+        toLocationId = toKey booking.toLocationId,
+        fromLocationId = toKey booking.fromLocationId
       }
 
 type FullRecurringBookingT = (RecurringBookingT, SLoc.BookingLocationT, SLoc.BookingLocationT)

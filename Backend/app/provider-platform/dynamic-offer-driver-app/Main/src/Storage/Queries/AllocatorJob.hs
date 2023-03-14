@@ -15,10 +15,12 @@
 
 module Storage.Queries.AllocatorJob where
 
+import Domain.Types.Timetable (Timetable)
 import Kernel.Prelude
 import Kernel.Storage.Esqueleto as Esq
-import Kernel.Types.Common (MonadTime (getCurrentTime))
+import Kernel.Types.Common (MonadTime (getCurrentTime), generateGUIDTextIO)
 import Kernel.Types.Id
+import Kernel.Utils.Text
 import Lib.Scheduler.Environment
 import Lib.Scheduler.ScheduleJob
 import Lib.Scheduler.Types
@@ -33,6 +35,26 @@ createAllocatorSendSearchRequestToDriverJob inTime jobData = do
         { jobData = jobData,
           maxErrors = 5
         }
+
+createUpcomingRideJobs :: [Id Timetable] -> Esq.SqlDB ()
+createUpcomingRideJobs timetables =
+  SqlDB $ lift $ Esq.insertMany_ =<< traverse makeJobFromTimetable timetables
+  where
+    makeJobFromTimetable timetableId = do
+      now <- liftIO getCurrentTime
+      jobId <- liftIO generateGUIDTextIO
+      pure $
+        AllocatorJobT
+          { id = jobId,
+            jobType = AllocateDriverForUpcomingRide,
+            jobData = encodeToText $ AllocateDriverForUpcomingRideJobData timetableId,
+            scheduledAt = now,
+            createdAt = now,
+            updatedAt = now,
+            maxErrors = 3,
+            currErrors = 0,
+            status = Pending
+          }
 
 create :: AnyJob AllocatorJobType -> SqlDB ()
 create = Esq.create
