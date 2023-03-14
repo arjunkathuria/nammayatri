@@ -49,6 +49,7 @@ import qualified Storage.CachedQueries.Merchant as QMerch
 import qualified Storage.Queries.Estimate as QEstimate
 import qualified Storage.Queries.Person.PersonFlowStatus as QPFS
 import qualified Storage.Queries.Quote as QQuote
+import qualified Storage.Queries.RecurringQuote as QRecurringQuote
 import qualified Storage.Queries.SearchRequest as QSearchReq
 import Tools.Error
 import qualified Tools.Metrics as Metrics
@@ -151,10 +152,11 @@ onSearchService transactionId registryUrl DOnSearchReq {..} = do
 
   now <- getCurrentTime
   estimates <- traverse (buildEstimate requestId providerInfo now) estimatesInfo
-  (quotes, recurringQuotes {- TODO save recurring quotes in DB -}) <- E.partitionEithers <$> traverse (buildQuote requestId providerInfo now) quotesInfo
+  (quotes, recurringQuotes) <- E.partitionEithers <$> traverse (buildQuote requestId providerInfo now) quotesInfo
   DB.runTransaction do
     QEstimate.createMany estimates
     QQuote.createMany quotes
+    QRecurringQuote.createMany recurringQuotes
     QPFS.updateStatus _searchRequest.riderId DPFS.GOT_ESTIMATE {requestId = _searchRequest.id, validTill = _searchRequest.validTill}
 
 buildEstimate ::
