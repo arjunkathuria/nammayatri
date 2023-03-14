@@ -41,7 +41,10 @@ data DriverPoolConfig = DriverPoolConfig
     maxDriverQuotesRequired :: Int,
     driverQuoteLimit :: Int,
     intelligentPoolPercentage :: Maybe Int,
-    driverRequestCountLimit :: Int
+    driverRequestCountLimit :: Int,
+    radiusShrinkValueForDriversOnRide :: Int,
+    driverToDestinationDistanceThreshold :: Meters,
+    driverToDestinationDuration :: Seconds
   }
   deriving (Generic, FromDhall)
 

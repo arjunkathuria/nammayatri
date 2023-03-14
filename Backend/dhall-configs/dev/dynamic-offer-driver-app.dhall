@@ -113,6 +113,9 @@ let driverPoolCfg =
       , maxDriverQuotesRequired = +1
       , driverQuoteLimit = +2
       , driverRequestCountLimit = +3
+      , radiusShrinkValueForDriversOnRide = +300
+      , driverToDestinationDistanceThreshold = +300
+      , driverToDestinationDuration = +10
       }
 
 let intelligentPoolConfig =
