@@ -25,7 +25,7 @@ import qualified Domain.Types.Booking.BookingLocation as DBL
 import qualified Domain.Types.BookingCancellationReason as DBCR
 import qualified Domain.Types.DriverOffer as DDriverOffer
 import qualified Domain.Types.Estimate as DEstimate
-import qualified Domain.Types.Merchant as DMerc
+import qualified Domain.Types.Exophone as DExophone
 import qualified Domain.Types.Person as DP
 import qualified Domain.Types.Person.PersonFlowStatus as DPFS
 import qualified Domain.Types.Quote as DQuote
@@ -43,10 +43,10 @@ import Kernel.Types.Id
 import Kernel.Utils.Common
 import SharedLogic.Estimate (checkIfEstimateCancelled)
 import Storage.CachedQueries.CacheConfig
-import qualified Storage.CachedQueries.Merchant as QMerchant
 import qualified Storage.Queries.Booking as QRideB
 import qualified Storage.Queries.BookingCancellationReason as QBCR
 import qualified Storage.Queries.Estimate as QEstimate
+import qualified Storage.Queries.Exophone as QExophone
 import qualified Storage.Queries.Person.PersonFlowStatus as QPFS
 import qualified Storage.Queries.Quote as QQuote
 import qualified Storage.Queries.SearchRequest as QSReq
@@ -98,8 +98,11 @@ confirm personId quoteId = do
       mbToLocation = searchRequest.toLocation
   bFromLocation <- buildBookingLocation now fromLocation
   mbBToLocation <- traverse (buildBookingLocation now) mbToLocation
-  merchant <- QMerchant.findById searchRequest.merchantId >>= fromMaybeM (MerchantNotFound searchRequest.merchantId.getId)
-  booking <- buildBooking searchRequest quote bFromLocation mbBToLocation merchant now
+  exophones <- QExophone.findAllByMerchantId searchRequest.merchantId
+  nonEmptyExophones <- case exophones of
+    [] -> throwError $ InternalError $ "Exophone not found: merchantId: " <> searchRequest.merchantId.getId -- FIXME (ExophoneNotFound searchRequest.merchantId.getId)
+    e : es -> pure $ e :| es
+  booking <- buildBooking searchRequest quote bFromLocation mbBToLocation nonEmptyExophones now
   let details = mkConfirmQuoteDetails quote.quoteDetails
   DB.runTransaction $ do
     QRideB.create booking
@@ -144,12 +147,12 @@ buildBooking ::
   DQuote.Quote ->
   DBL.BookingLocation ->
   Maybe DBL.BookingLocation ->
-  DMerc.Merchant ->
+  NonEmpty DExophone.Exophone ->
   UTCTime ->
   m DRB.Booking
-buildBooking searchRequest quote fromLoc mbToLoc merchant now = do
+buildBooking searchRequest quote fromLoc mbToLoc nonEmptyExoPhones now = do
   id <- generateGUID
-  exoPhone <- getRandomElement merchant.exoPhones
+  exoPhone <- getRandomElement nonEmptyExoPhones
   bookingDetails <- buildBookingDetails
   return $
     DRB.Booking
@@ -161,7 +164,7 @@ buildBooking searchRequest quote fromLoc mbToLoc merchant now = do
         providerUrl = quote.providerUrl,
         providerName = quote.providerName,
         providerMobileNumber = quote.providerMobileNumber,
-        providerExoPhone = exoPhone,
+        providerExoPhone = if not exoPhone.isPrimaryDown then exoPhone.primaryPhone else exoPhone.backupPhone,
         startTime = searchRequest.startTime,
         riderId = searchRequest.riderId,
         fromLocation = fromLoc,

@@ -45,10 +45,10 @@ import Kernel.Types.Common
 import Kernel.Types.Id
 import Kernel.Utils.Common
 import Storage.CachedQueries.CacheConfig
-import qualified Storage.CachedQueries.Merchant as Merchant
 import qualified Storage.Queries.Booking as QB
 import qualified Storage.Queries.Booking as QRB
 import qualified Storage.Queries.CallStatus as QCallStatus
+import qualified Storage.Queries.Exophone as QExophone
 import Storage.Queries.Person as Person
 import qualified Storage.Queries.Ride as QRide
 import qualified Tools.Call as Call
@@ -132,10 +132,10 @@ getDriverMobileNumber :: (CacheFlow m r, EsqDBFlow m r, EsqDBReplicaFlow m r, En
 getDriverMobileNumber callSid callFrom_ callTo_ callStatus = do
   let callFrom = dropFirstZero callFrom_
   let callTo = dropFirstZero callTo_
-  merchant <- Merchant.findByExoPhone callTo >>= fromMaybeM (MerchantWithExoPhoneNotFound callTo)
+  exophone <- QExophone.findByPrimaryPhone callTo >>= fromMaybeM (MerchantWithExoPhoneNotFound callTo)
   mobileNumberHash <- getDbHash callFrom
   person <-
-    runInReplica (Person.findByRoleAndMobileNumberAndMerchantId USER "+91" mobileNumberHash merchant.id)
+    runInReplica (Person.findByRoleAndMobileNumberAndMerchantId USER "+91" mobileNumberHash exophone.merchantId)
       >>= fromMaybeM (PersonWithPhoneNotFound callFrom)
   booking <- runInReplica $ QRB.findAssignedByRiderId person.id >>= fromMaybeM (BookingForRiderNotFound $ getId person.id)
   ride <- runInReplica $ QRide.findActiveByRBId booking.id >>= fromMaybeM (RideWithBookingIdNotFound $ getId booking.id)

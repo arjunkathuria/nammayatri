@@ -16,6 +16,7 @@ module Domain.Action.Beckn.Init where
 
 import qualified Domain.Types.Booking as DRB
 import qualified Domain.Types.Booking.BookingLocation as DLoc
+import qualified Domain.Types.Exophone as DExophone
 import qualified Domain.Types.Merchant as DM
 import qualified Domain.Types.Vehicle as Veh
 import Kernel.Prelude
@@ -32,6 +33,7 @@ import Storage.CachedQueries.CacheConfig
 import qualified Storage.CachedQueries.FarePolicy.RentalFarePolicy as QRFP
 import qualified Storage.CachedQueries.Merchant as QM
 import qualified Storage.Queries.Booking as QRB
+import qualified Storage.Queries.Exophone as QExophone
 import qualified Storage.Queries.Geometry as QGeometry
 import Tools.Error
 import Tools.Maps as MapSearch
@@ -135,7 +137,11 @@ initOneWayTrip req oneWayReq transporter now = do
               DRB.estimatedDuration = estimatedRideDuration
             }
   fromLoc <- buildRBLoc req.fromLocation now
-  booking <- buildBooking req transporter.id estimatedFare discount estimatedTotalFare owDetails fromLoc transporter now
+  exophones <- QExophone.findAllByMerchantId transporter.id
+  nonEmptyExophones <- case exophones of
+    [] -> throwError $ InternalError $ "Exophone not found: merchantId: " <> transporter.id.getId -- FIXME (ExophoneNotFound merchantId.getId)
+    e : es -> pure $ e :| es
+  booking <- buildBooking req transporter.id estimatedFare discount estimatedTotalFare owDetails fromLoc nonEmptyExophones now
   DB.runTransaction $ do
     QRB.create booking
   return booking
@@ -160,7 +166,11 @@ initRentalTrip req rentalReq transporter now = do
   rentalFarePolicy <- QRFP.findByOffer transporter.id req.vehicleVariant rentalReq.distance rentalReq.duration >>= fromMaybeM NoFarePolicy
   let rentDetails = DRB.RentalDetails $ DRB.RentalBookingDetails {rentalFarePolicyId = rentalFarePolicy.id}
   fromLoc <- buildRBLoc req.fromLocation now
-  booking <- buildBooking req transporter.id estimatedFare discount estimatedTotalFare rentDetails fromLoc transporter now
+  exophones <- QExophone.findAllByMerchantId transporter.id
+  nonEmptyExophones <- case exophones of
+    [] -> throwError $ InternalError $ "Exophone not found: merchantId: " <> transporter.id.getId -- FIXME (ExophoneNotFound merchantId.getId)
+    e : es -> pure $ e :| es
+  booking <- buildBooking req transporter.id estimatedFare discount estimatedTotalFare rentDetails fromLoc nonEmptyExophones now
   DB.runTransaction $ do
     QRB.create booking
   return booking
@@ -200,18 +210,18 @@ buildBooking ::
   Money ->
   DRB.BookingDetails ->
   DLoc.BookingLocation ->
-  DM.Merchant ->
+  NonEmpty DExophone.Exophone ->
   UTCTime ->
   m DRB.Booking
-buildBooking req merchantId estimatedFare discount estimatedTotalFare bookingDetails fromLocation merchant now = do
+buildBooking req merchantId estimatedFare discount estimatedTotalFare bookingDetails fromLocation nonEmptyExoPhones now = do
   id <- generateGUID
-  exoPhone <- getRandomElement merchant.exoPhones
+  exoPhone <- getRandomElement nonEmptyExoPhones
   return $
     DRB.Booking
       { id = Id id,
         status = DRB.NEW,
         providerId = merchantId,
-        providerExoPhone = exoPhone,
+        providerExoPhone = if not exoPhone.isPrimaryDown then exoPhone.primaryPhone else exoPhone.backupPhone,
         startTime = req.startTime,
         riderId = Nothing,
         fromLocation,

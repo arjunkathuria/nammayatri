@@ -35,6 +35,7 @@ import qualified Storage.CachedQueries.Merchant as QM
 import qualified Storage.Queries.Booking as QRB
 import qualified Storage.Queries.BookingCancellationReason as QBCR
 import qualified Storage.Queries.DriverQuote as QDQuote
+import qualified Storage.Queries.Exophone as QExophone
 import qualified Storage.Queries.SearchRequest as QSR
 
 data InitReq = InitReq
@@ -98,28 +99,32 @@ cancelBooking booking transporterId = do
 handler :: (CacheFlow m r, EsqDBFlow m r) => Id DM.Merchant -> InitReq -> m InitRes
 handler merchantId req = do
   transporter <- QM.findById merchantId >>= fromMaybeM (MerchantNotFound merchantId.getId)
+  exophones <- QExophone.findAllByMerchantId merchantId
+  nonEmptyExophones <- case exophones of
+    [] -> throwError $ InternalError $ "Exophone not found: merchantId: " <> merchantId.getId -- FIXME (ExophoneNotFound merchantId.getId)
+    e : es -> pure $ e :| es
   now <- getCurrentTime
   driverQuote <- QDQuote.findById req.driverQuoteId >>= fromMaybeM (QuoteNotFound req.driverQuoteId.getId)
   when (driverQuote.validTill < now) $
     throwError $ QuoteExpired driverQuote.id.getId
   searchRequest <- QSR.findById driverQuote.searchRequestId >>= fromMaybeM (SearchRequestNotFound driverQuote.searchRequestId.getId)
   -- do we need to check searchRequest.validTill?
-  booking <- buildBooking searchRequest driverQuote transporter now
+  booking <- buildBooking searchRequest driverQuote nonEmptyExophones now
   Esq.runTransaction $
     QRB.create booking
   pure InitRes {..}
   where
-    buildBooking searchRequest driverQuote merchant now = do
+    buildBooking searchRequest driverQuote nonEmptyExophones now = do
       id <- Id <$> generateGUID
       fromLocation <- buildBookingLocation searchRequest.fromLocation
       toLocation <- buildBookingLocation searchRequest.toLocation
-      exoPhone <- getRandomElement merchant.exoPhones
+      exoPhone <- getRandomElement nonEmptyExophones
       pure
         DRB.Booking
           { quoteId = req.driverQuoteId,
             status = DRB.NEW,
             providerId = merchantId,
-            providerExoPhone = exoPhone,
+            providerExoPhone = if not exoPhone.isPrimaryDown then exoPhone.primaryPhone else exoPhone.backupPhone,
             bapId = req.bapId,
             bapUri = req.bapUri,
             startTime = searchRequest.startTime,
