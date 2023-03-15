@@ -46,7 +46,7 @@ instance TEntityKey ExophoneT where
   fromKey (ExophoneTKey _id) = Id _id
   toKey (Id id) = ExophoneTKey id
 
-instance TType ExophoneT Domain.Exophone where
+instance FromTType ExophoneT Domain.Exophone where
   fromTType ExophoneT {..} = do
     return $
       Domain.Exophone
@@ -54,6 +54,8 @@ instance TType ExophoneT Domain.Exophone where
           merchantId = fromKey merchantId,
           ..
         }
+
+instance ToTType ExophoneT Domain.Exophone where
   toTType Domain.Exophone {..} =
     ExophoneT
       { id = getId id,
