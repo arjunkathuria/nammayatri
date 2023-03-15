@@ -237,7 +237,7 @@ sortWithDriverScore merchantId (Just transporterConfig) dp = do
       driverIds
   acceptanceRatios <- getRatios (getLatestAcceptanceRatio merchantId) driverIds
   driversAvailableTime <- map (second (sum . catMaybes)) <$> getRatios (getCurrentWindowAvailability merchantId) driverIds
-  averageSpeeds <- getRatios (fmap (fromMaybe 0) . getDriverAverageSpeed merchantId . cast) driverIds
+  averageSpeeds <- getRatios (getDriverAverageSpeed merchantId . cast) driverIds
   let driverSpeedScore = getSpeedScore (transporterConfig.driverSpeedWeightage) averageSpeeds
   let driverCancellationScore = getScoreWithWeight (transporterConfig.cancellationRatioWeightage) cancellationRatios
   let driverAcceptanceScore = getScoreWithWeight (transporterConfig.acceptanceRatioWeightage) acceptanceRatios

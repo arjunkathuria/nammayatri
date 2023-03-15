@@ -58,7 +58,7 @@ mkPersist
       driverSpeedWeightage Int
       locationUpdateSampleTime Minutes
       minLocationUpdates Int
-      defaultDriverSpeed Int
+      defaultDriverSpeed Double
 
       Primary merchantId
       deriving Generic

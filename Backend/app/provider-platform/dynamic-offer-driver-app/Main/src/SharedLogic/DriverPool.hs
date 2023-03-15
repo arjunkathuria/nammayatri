@@ -379,10 +379,12 @@ getDriverAverageSpeed ::
   ) =>
   Id DM.Merchant ->
   Id DP.Person ->
-  m (Maybe Double)
+  m (Double)
 getDriverAverageSpeed merchantId driverId = Redis.withCrossAppRedis $ do
   -- minLocationUpdates' <- (fromMaybe 3)  . (fmap (.minLocationUpdates)) <$> TC.findByMerchantId merchantId -- :: (Maybe TC)
-  minLocationUpdates <- maybe 3 (.minLocationUpdates) <$> TC.findByMerchantId merchantId
+  transporterConfigs <- TC.findByMerchantId merchantId
+  let minLocationUpdates = maybe 3 (.minLocationUpdates) transporterConfigs
+      defaultDriverSpeed = maybe 27.0 (.defaultDriverSpeed) transporterConfigs
   let driverLocationUpdatesKey = mkDriverLocationUpdatesKey merchantId driverId
   locationUpdatesList :: [(LatLong, UTCTime)] <- concat <$> Redis.safeGet driverLocationUpdatesKey
   let locationUpdatesCount = length locationUpdatesList
@@ -398,8 +400,8 @@ getDriverAverageSpeed merchantId driverId = Redis.withCrossAppRedis $ do
               )
               (0, 0)
               locationUpdatesPairs
-      pure . Just . fromRational . toRational $ totalDistanceTravelled.getHighPrecMeters.getCenti / totalTimeTaken
-    else pure Nothing
+      pure . fromRational . toRational $ totalDistanceTravelled.getHighPrecMeters.getCenti / totalTimeTaken
+    else pure defaultDriverSpeed
 
 calculateDriverPool ::
   ( EncFlow m r,

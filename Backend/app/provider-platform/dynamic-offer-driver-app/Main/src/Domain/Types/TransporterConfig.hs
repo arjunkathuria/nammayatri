@@ -46,7 +46,7 @@ data TransporterConfigD u = TransporterConfig
     driverSpeedWeightage :: Int,
     minLocationUpdates :: Int,
     locationUpdateSampleTime :: Minutes,
-    defaultDriverSpeed :: Int
+    defaultDriverSpeed :: Double
   }
   deriving (Generic, Show)
 
