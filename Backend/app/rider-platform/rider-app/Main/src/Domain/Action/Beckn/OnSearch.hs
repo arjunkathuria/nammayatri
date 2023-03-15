@@ -184,7 +184,7 @@ buildEstimate requestId providerInfo now EstimateInfo {..} = do
       }
 
 buildQuote ::
-  MonadFlow m =>
+  (MonadFlow m, EsqDBFlow m r) =>
   Id DSearchReq.SearchRequest ->
   ProviderInfo ->
   UTCTime ->
@@ -193,6 +193,7 @@ buildQuote ::
 buildQuote requestId providerInfo now QuoteInfo {..} = do
   uid <- generateGUID
   tripTerms <- buildTripTerms descriptions
+  searchRequest <- QSearchReq.findById requestId >>= fromMaybeM (SearchRequestDoesNotExist requestId.getId)
   quoteDetails' <- case quoteDetails of
     OneWayDetails oneWayDetails ->
       pure . DQuote.OneWayDetails $ mkOneWayQuoteDetails oneWayDetails
@@ -208,6 +209,7 @@ buildQuote requestId providerInfo now QuoteInfo {..} = do
         providerUrl = providerInfo.url,
         createdAt = now,
         quoteDetails = quoteDetails',
+        merchantId = searchRequest.merchantId,
         ..
       }
 

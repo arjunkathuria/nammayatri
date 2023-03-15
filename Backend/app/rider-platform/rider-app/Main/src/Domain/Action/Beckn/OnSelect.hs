@@ -98,7 +98,7 @@ onSelect DOnSelectReq {..} = do
       isJust <$> QQuote.findByBppIdAndBPPQuoteId bppId_ bppQuoteId_
 
 buildSelectedQuote ::
-  MonadFlow m =>
+  (MonadFlow m, EsqDBFlow m r) =>
   DEstimate.Estimate ->
   ProviderInfo ->
   UTCTime ->
@@ -108,6 +108,9 @@ buildSelectedQuote estimate providerInfo now QuoteInfo {..} = do
   uid <- generateGUID
   tripTerms <- buildTripTerms descriptions
   driverOffer <- buildDriverOffer estimate.id quoteDetails
+  searchRequest <-
+    QSR.findById estimate.requestId
+      >>= fromMaybeM (SearchRequestDoesNotExist estimate.requestId.getId)
   let quote =
         DQuote.Quote
           { id = uid,
@@ -119,6 +122,7 @@ buildSelectedQuote estimate providerInfo now QuoteInfo {..} = do
             createdAt = now,
             quoteDetails = DQuote.DriverOfferDetails driverOffer,
             requestId = estimate.requestId,
+            merchantId = searchRequest.merchantId,
             ..
           }
   pure quote
