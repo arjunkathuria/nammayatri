@@ -20,6 +20,7 @@ module API.UI.Ride
   )
 where
 
+import qualified "dashboard-helper-api" Dashboard.RiderPlatform.Ride as Common
 import Data.Aeson.Types ()
 import qualified Domain.Action.UI.Ride as DRide
 import qualified Domain.Types.Person as SPerson
@@ -41,6 +42,8 @@ type API =
                   :<|> "status"
                   :> TokenAuth
                   :> Get '[JSON] DRide.GetRideStatusResp
+                  :<|> "share"
+                  :> Get '[JSON] Common.ShareRideInfoRes
               )
        )
 
@@ -48,9 +51,13 @@ handler :: FlowServer API
 handler rideId =
   getDriverLoc rideId
     :<|> getRideStatus rideId
+    :<|> shareRideInfo rideId
 
 getDriverLoc :: Id SRide.Ride -> Id SPerson.Person -> FlowHandler DRide.GetDriverLocResp
 getDriverLoc rideId personId = withFlowHandlerAPI . withPersonIdLogTag personId $ DRide.getDriverLoc rideId personId
 
 getRideStatus :: Id SRide.Ride -> Id SPerson.Person -> FlowHandler DRide.GetRideStatusResp
 getRideStatus rideId personId = withFlowHandlerAPI . withPersonIdLogTag personId $ DRide.getRideStatus rideId personId
+
+shareRideInfo :: Id SRide.Ride -> FlowHandler Common.ShareRideInfoRes
+shareRideInfo rideId = withFlowHandlerAPI $ DRide.shareRideInfoQuery rideId

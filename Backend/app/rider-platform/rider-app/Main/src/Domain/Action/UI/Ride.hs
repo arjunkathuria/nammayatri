@@ -17,11 +17,15 @@ module Domain.Action.UI.Ride
     GetRideStatusResp (..),
     getDriverLoc,
     getRideStatus,
+    shareRideInfo,
+    shareRideInfoQuery,
   )
 where
 
-import Domain.Types.Booking.BookingLocation (BookingLocationAPIEntity, makeBookingLocationAPIEntity)
+import qualified "dashboard-helper-api" Dashboard.RiderPlatform.Ride as Common
+import Domain.Types.Booking.BookingLocation (BookingLocation (..), BookingLocationAPIEntity, makeBookingLocationAPIEntity)
 import qualified Domain.Types.Booking.Type as DB
+import Domain.Types.LocationAddress
 import qualified Domain.Types.Person as SPerson
 import Domain.Types.Ride
 import qualified Domain.Types.Ride as SRide
@@ -127,4 +131,68 @@ getRideStatus rideId personId = withLogTag ("personId-" <> personId.getId) do
         ride = makeRideAPIEntity ride,
         customer = SPerson.makePersonAPIEntity decRider,
         driverPosition = mbPos <&> (.currPoint)
+      }
+
+mkCommonRideStatus :: RideStatus -> Common.RideStatus
+mkCommonRideStatus rs = case rs of
+  NEW -> Common.NEW
+  INPROGRESS -> Common.INPROGRESS
+  COMPLETED -> Common.COMPLETED
+  CANCELLED -> Common.CANCELLED
+
+mkCommonBookingLocation :: BookingLocation -> Common.BookingLocation
+mkCommonBookingLocation BookingLocation {..} =
+  Common.BookingLocation
+    { id = cast @BookingLocation @Common.BookingLocation id,
+      address = mkAddressRes address,
+      ..
+    }
+
+mkAddressRes :: LocationAddress -> Common.LocationAddress
+mkAddressRes LocationAddress {..} = Common.LocationAddress {..}
+
+shareRideInfoQuery ::
+  ( EsqDBReplicaFlow m r
+  ) =>
+  Id Ride ->
+  m Common.ShareRideInfoRes
+shareRideInfoQuery rideId = do
+  ride <- runInReplica $ QRide.findById rideId >>= fromMaybeM (RideDoesNotExist rideId.getId)
+  booking <- runInReplica $ QRB.findById ride.bookingId >>= fromMaybeM (BookingDoesNotExist ride.bookingId.getId)
+  shareRideInfo ride booking
+
+shareRideInfo ::
+  ( EsqDBReplicaFlow m r
+  ) =>
+  Ride ->
+  DB.Booking ->
+  m Common.ShareRideInfoRes
+shareRideInfo ride booking = do
+  when
+    (ride.status == COMPLETED)
+    $ throwError $ RideInvalidStatus "This ride is completed"
+  when (ride.status == CANCELLED) $
+    throwError $ RideInvalidStatus "This ride is cancelled"
+  person <- runInReplica $ QP.findById booking.riderId >>= fromMaybeM (PersonDoesNotExist booking.riderId.getId)
+  let mbtoLocation = case booking.bookingDetails of
+        DB.OneWayDetails x -> Just $ mkCommonBookingLocation x.toLocation
+        DB.DriverOfferDetails x -> Just $ mkCommonBookingLocation x.toLocation
+        _ -> Nothing
+  return $
+    Common.ShareRideInfoRes
+      { id = cast ride.id,
+        bookingId = cast ride.bookingId,
+        status = mkCommonRideStatus ride.status,
+        driverName = ride.driverName,
+        driverRating = ride.driverRating,
+        vehicleNumber = ride.vehicleNumber,
+        vehicleModel = ride.vehicleModel,
+        vehicleColor = ride.vehicleColor,
+        trackingUrl = ride.trackingUrl,
+        rideStartTime = ride.rideStartTime,
+        rideEndTime = ride.rideEndTime,
+        userFirstName = person.firstName,
+        userLastName = person.lastName,
+        fromLocation = mkCommonBookingLocation booking.fromLocation,
+        toLocation = mbtoLocation
       }

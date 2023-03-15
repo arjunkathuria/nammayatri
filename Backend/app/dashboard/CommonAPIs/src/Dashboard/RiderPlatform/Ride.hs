@@ -11,15 +11,55 @@
 
  the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 -}
+{-# LANGUAGE DerivingVia #-}
 
-module Domain.Types.Booking.BookingLocation where
+module Dashboard.RiderPlatform.Ride
+  ( module Dashboard.RiderPlatform.Ride,
+    module Reexport,
+  )
+where
 
-import Data.Aeson
-import Data.OpenApi (ToSchema)
-import Data.Time
-import EulerHS.Prelude hiding (id, state)
-import Kernel.External.Maps.HasCoordinates (HasCoordinates)
+import Dashboard.Common as Reexport
+import qualified Dashboard.Common as DP
+import Kernel.External.Maps
+import Kernel.Prelude
+import Kernel.Types.Centesimal
 import Kernel.Types.Id
+import Servant
+
+---------------------------------------------------------
+-- share ride info--------------------------------------
+
+type ShareRideInfoAPI =
+  Capture "rideId" (Id DP.Ride)
+    :> "share"
+    :> Get '[JSON] ShareRideInfoRes
+
+data ShareRideInfoRes = ShareRideInfoRes
+  { id :: Id Ride,
+    bookingId :: Id Booking,
+    status :: RideStatus,
+    driverName :: Text,
+    driverRating :: Maybe Centesimal,
+    vehicleNumber :: Text,
+    vehicleModel :: Text,
+    vehicleColor :: Text,
+    trackingUrl :: Maybe BaseUrl,
+    rideStartTime :: Maybe UTCTime,
+    rideEndTime :: Maybe UTCTime,
+    userFirstName :: Maybe Text,
+    userLastName :: Maybe Text,
+    fromLocation :: BookingLocation,
+    toLocation :: Maybe BookingLocation
+  }
+  deriving (Generic, Show, ToSchema, FromJSON, ToJSON)
+
+data RideStatus
+  = NEW
+  | INPROGRESS
+  | COMPLETED
+  | CANCELLED
+  deriving (Show, Eq, Ord, Read, Generic, ToJSON, FromJSON, ToSchema)
 
 data BookingLocation = BookingLocation
   { id :: Id BookingLocation,
@@ -41,23 +81,3 @@ data LocationAddress = LocationAddress
     area :: Maybe Text
   }
   deriving (Generic, Show, Eq, ToSchema, FromJSON, ToJSON)
-
-data BookingLocationAPIEntity = BookingLocationAPIEntity
-  { lat :: Double,
-    lon :: Double,
-    street :: Maybe Text,
-    city :: Maybe Text,
-    state :: Maybe Text,
-    country :: Maybe Text,
-    building :: Maybe Text,
-    areaCode :: Maybe Text,
-    area :: Maybe Text
-  }
-  deriving (Generic, FromJSON, ToJSON, Show, ToSchema)
-
-makeBookingLocationAPIEntity :: BookingLocation -> BookingLocationAPIEntity
-makeBookingLocationAPIEntity BookingLocation {..} = do
-  let LocationAddress {..} = address
-  BookingLocationAPIEntity
-    { ..
-    }

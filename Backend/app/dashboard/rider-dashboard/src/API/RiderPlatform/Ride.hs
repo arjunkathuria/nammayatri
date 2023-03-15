@@ -12,33 +12,35 @@
  the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 -}
 
-module API.RiderPlatform
+module API.RiderPlatform.Ride
   ( API,
     handler,
   )
 where
 
-import qualified API.RiderPlatform.Booking as Booking
-import qualified API.RiderPlatform.Customer as Customer
-import qualified API.RiderPlatform.Merchant as Merchant
-import qualified API.RiderPlatform.Ride as Ride
-import qualified "lib-dashboard" Domain.Types.Merchant as DMerchant
+import qualified Dashboard.RiderPlatform.Ride as Common
+import qualified "lib-dashboard" Domain.Types.Merchant as DM
 import "lib-dashboard" Environment
+import Kernel.Prelude
 import Kernel.Types.Id
-import Servant
+import Kernel.Utils.Common
+import qualified RiderPlatformClient.RiderApp as Client
+import Servant hiding (throwError)
+import Tools.Auth.Merchant
 
 type API =
-  "bap"
-    :> Capture "merchantId" (ShortId DMerchant.Merchant)
-    :> ( Customer.API
-           :<|> Booking.API
-           :<|> Merchant.API
-           :<|> Ride.API
-       )
+  "ride"
+    :> ShareRideInfoAPI
 
-handler :: FlowServer API
-handler merchantId =
-  Customer.handler merchantId
-    :<|> Booking.handler merchantId
-    :<|> Merchant.handler merchantId
-    :<|> Ride.handler merchantId
+type ShareRideInfoAPI = Common.ShareRideInfoAPI
+
+handler :: ShortId DM.Merchant -> FlowServer API
+handler = shareRideInfo
+
+shareRideInfo ::
+  ShortId DM.Merchant ->
+  Id Common.Ride ->
+  FlowHandler Common.ShareRideInfoRes
+shareRideInfo merchantShortId rideId = withFlowHandlerAPI $ do
+  checkedMerchantId <- merchantAccessCheck merchantShortId merchantShortId
+  Client.callRiderApp checkedMerchantId (.rides.shareRideInfo) rideId

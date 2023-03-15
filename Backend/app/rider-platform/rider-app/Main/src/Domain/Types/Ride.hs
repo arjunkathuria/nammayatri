@@ -71,7 +71,7 @@ data Ride = Ride
     createdAt :: UTCTime,
     updatedAt :: UTCTime
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, ToSchema, FromJSON, ToJSON)
 
 data RideAPIEntity = RideAPIEntity
   { id :: Id Ride,
