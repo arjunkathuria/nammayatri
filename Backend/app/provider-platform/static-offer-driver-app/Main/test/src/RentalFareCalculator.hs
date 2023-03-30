@@ -14,7 +14,7 @@
 
 module RentalFareCalculator where
 
-import Data.Time hiding (parseTime)
+import Data.Time
 import Domain.Types.FarePolicy.RentalFarePolicy
 import EulerHS.Prelude
 import qualified Fixtures.RentalFarePolicy as Fixtures

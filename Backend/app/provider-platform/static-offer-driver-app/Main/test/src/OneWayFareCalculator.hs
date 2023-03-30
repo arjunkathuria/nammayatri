@@ -14,7 +14,7 @@
 
 module OneWayFareCalculator where
 
-import Data.Time hiding (parseTime)
+import Data.Time
 import Domain.Types.FarePolicy.Discount
 import Domain.Types.FarePolicy.FareProduct
 import Domain.Types.FarePolicy.OneWayFarePolicy
