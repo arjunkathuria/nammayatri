@@ -16,6 +16,7 @@ module Utils.Time where
 
 import qualified Data.Time as Time
 import EulerHS.Prelude
+import Data.Maybe (fromJust)
 
 parseTime :: String -> Time.UTCTime
 parseTime time =
