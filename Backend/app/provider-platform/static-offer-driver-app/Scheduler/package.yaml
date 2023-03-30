@@ -94,6 +94,7 @@ library:
     - -Widentities
     - -fhide-source-paths
     - -Werror
+    - -Wwarn=ambiguous-fields
   dependencies:
     - static-offer-driver-app
     - mobility-core
