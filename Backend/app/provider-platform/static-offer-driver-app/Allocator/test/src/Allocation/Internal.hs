@@ -15,6 +15,7 @@
 
 module Allocation.Internal where
 
+import Control.Lens ((.~))
 import qualified Data.Map as Map
 import qualified Data.Time as Time
 import qualified Data.Time.Calendar.OrdinalDate as Time
@@ -25,7 +26,7 @@ import Domain.Types.Merchant
 import Domain.Types.Person (Driver)
 import qualified Domain.Types.RideRequest as SRR
 import qualified Domain.Types.Vehicle as Veh
-import EulerHS.Prelude hiding (id)
+import EulerHS.Prelude hiding (id, (.~))
 import Kernel.Types.Id
 import Kernel.Utils.Common
 import Servant.Client

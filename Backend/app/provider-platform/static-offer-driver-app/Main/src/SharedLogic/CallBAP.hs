@@ -24,6 +24,7 @@ module SharedLogic.CallBAP
   )
 where
 
+import Control.Lens ((%~))
 import qualified Beckn.ACL.OnUpdate as ACL
 import qualified Beckn.Types.Core.Taxi.API.OnUpdate as API
 import qualified Beckn.Types.Core.Taxi.OnUpdate as OnUpdate
@@ -33,7 +34,7 @@ import qualified Domain.Types.BookingCancellationReason as SRBCR
 import qualified Domain.Types.FarePolicy.FareBreakup as DFareBreakup
 import qualified Domain.Types.Merchant as DM
 import qualified Domain.Types.Ride as SRide
-import EulerHS.Prelude
+import EulerHS.Prelude hiding ((%~))
 import Kernel.Storage.Hedis
 import qualified Kernel.Types.Beckn.Context as Context
 import Kernel.Types.Beckn.ReqTypes (BecknCallbackReq (BecknCallbackReq))

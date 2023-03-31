@@ -31,8 +31,9 @@ import qualified "rider-app" App as AppBackend
 import qualified "search-result-aggregator" App as SearchResultAggregator
 import qualified "static-offer-driver-app" App as TransporterBackend
 import qualified "static-offer-driver-app-allocator" App as YatriAllocator
+import Control.Lens ((.~))
 import qualified Data.Text as T (replace, toUpper, unpack)
-import EulerHS.Prelude
+import EulerHS.Prelude hiding ((.~))
 import qualified Kernel.External.Maps as Maps
 import qualified Kernel.Storage.Esqueleto as Esq
 import Kernel.Utils.Common hiding (id)

@@ -249,6 +249,7 @@ test-suite static-offer-driver-app-allocator-tests
     , extra
     , generic-lens
     , hspec
+    , lens
     , mobility-core
     , openapi3
     , prometheus-client

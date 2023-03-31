@@ -18,7 +18,8 @@ module Mobility.Transporter.Serviceability where
 import qualified "rider-app" API.UI.Search as AppBESearch
 import "rider-app" API.UI.Serviceability
 import Common
-import EulerHS.Prelude
+import Control.Lens ((.~))
+import EulerHS.Prelude hiding ((.~))
 import Kernel.External.Maps.Types (LatLong (..))
 import Mobility.AppBackend.APICalls
 import Mobility.AppBackend.Fixtures
