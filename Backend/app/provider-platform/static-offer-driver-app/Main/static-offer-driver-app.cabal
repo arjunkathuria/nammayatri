@@ -346,6 +346,7 @@ library
     , servant-openapi3
     , servant-server
     , singletons
+    , singletons-base
     , stm
     , string-conversions
     , text
@@ -424,6 +425,7 @@ executable static-offer-driver-app-exe
     , servant-openapi3
     , servant-server
     , singletons
+    , singletons-base
     , static-offer-driver-app
     , stm
     , string-conversions

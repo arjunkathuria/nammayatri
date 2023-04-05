@@ -14,10 +14,11 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
 
 module SharedLogic.Scheduler where
 
-import Data.Singletons.TH
+import Data.Singletons.Base.TH
 import qualified Domain.Types.Booking as DRB
 import qualified Domain.Types.Merchant as DM
 import Kernel.Prelude

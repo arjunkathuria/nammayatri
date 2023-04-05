@@ -83,6 +83,7 @@ dependencies:
   - dashboard-helper-api
   - scheduler
   - singletons
+  - singletons-base
 
 ghc-options:
   - -fwrite-ide-info
