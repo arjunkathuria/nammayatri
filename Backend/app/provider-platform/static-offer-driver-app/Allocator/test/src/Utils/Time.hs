@@ -20,5 +20,8 @@ import EulerHS.Prelude
 
 parseTime :: String -> Time.UTCTime
 parseTime time =
-  let fmt = Time.iso8601DateFormat (Just "%H:%M:%S%QZ")
+  let fmt = "%Y-%m-%dT%H:%M:%S%QZ"
+    --fmt = Time.iso8601DateFormat (Just "%H:%M:%S%QZ") :: THIS IS DEPRECATED, the above format is equivalent
+    -- the old useage is being left as a comment for clarity on what the change was
+    -- TODO:// CLEAN these comments at a later iteration
    in fromJust . Time.parseTimeM True Time.defaultTimeLocale fmt $ time
