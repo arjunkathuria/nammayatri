@@ -107,7 +107,7 @@ getValidTime now startTime = do
   caseExpiry_ <- maybe 7200 fromIntegral <$> asks (.searchExpiry)
   let minExpiry = 300 -- 5 minutes
       timeToRide = startTime `diffUTCTime` now
-      validTill = addUTCTime (minimum [fromInteger caseExpiry_, maximum [minExpiry, timeToRide]]) now
+      validTill = addUTCTime (min (fromInteger caseExpiry_) (max minExpiry timeToRide)) now
   pure validTill
 
 buildSearchRequest ::
