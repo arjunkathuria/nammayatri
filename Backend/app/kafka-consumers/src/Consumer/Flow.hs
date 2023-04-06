@@ -31,7 +31,9 @@ import Kernel.Types.Flow
 import Kernel.Utils.Common (generateGUID, withLogTag)
 import qualified Streamly.Internal.Data.Fold as SF
 import Streamly.Internal.Data.Stream.Serial (SerialT)
-import qualified Streamly.Internal.Prelude as S
+import qualified Streamly.Prelude as S
+
+import Consumer.AvailabilityTime.Types (LocationUpdates)
 
 runConsumer :: L.FlowRuntime -> AppEnv -> ConsumerType -> Consumer.KafkaConsumer -> IO ()
 runConsumer flowRt appEnv consumerType kafkaConsumer = do
@@ -68,11 +70,16 @@ availabilityConsumer flowRt appEnv kafkaConsumer =
         generateGUID
           >>= flip withLogTag (ATProcessor.processData locationUpdate driverId)
 
+    buildTimeSeries :: MonadIO m =>
+      SF.Fold
+      m
+      (LocationUpdates, ConsumerRecordD)
+      ([UTCTime], Maybe ConsumerRecordD)
     buildTimeSeries = SF.mkFold step start extract
       where
-        step (!acc, _) (val, cr) = pure (val.ts : acc, Just cr)
-        start = pure ([], Nothing)
-        extract = pure
+        step (!acc, _) (val, cr) = SF.Partial (val.ts : acc, Just cr)
+        start = SF.Partial ([], Nothing)
+        extract = id
 
 readMessages ::
   (FromJSON a, ConvertUtf8 aKey ByteString) =>
