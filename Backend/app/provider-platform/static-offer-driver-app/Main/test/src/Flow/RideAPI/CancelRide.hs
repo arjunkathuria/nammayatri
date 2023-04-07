@@ -12,6 +12,8 @@
  the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 -}
 
+{-# OPTIONS_GHC -Wwarn=incomplete-uni-patterns #-}
+
 module Flow.RideAPI.CancelRide (cancelRide) where
 
 import qualified Domain.Action.UI.Ride.CancelRide as CancelRide
