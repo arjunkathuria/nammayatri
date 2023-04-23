@@ -42,7 +42,7 @@ import Kernel.Types.Id
 import Kernel.Utils.Common
 import qualified Lib.Queries.SpecialLocation as QSpecialLocation
 import qualified SharedLogic.CacheDistance as CD
-import SharedLogic.DriverPool hiding (lat, lon)
+import SharedLogic.DriverPool
 import SharedLogic.Estimate (EstimateItem, buildEstimate, buildEstimateFromSlabFarePolicy)
 import SharedLogic.FareCalculator
 import Storage.CachedQueries.CacheConfig (HasCacheConfig)
