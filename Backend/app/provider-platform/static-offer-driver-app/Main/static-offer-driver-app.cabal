@@ -317,7 +317,7 @@ library
       UndecidableInstances
       StandaloneDeriving
       PackageImports
-  ghc-options: -fwrite-ide-info -hiedir=.hie -fplugin=RecordDotPreprocessor -Wall -Wcompat -Widentities -fhide-source-paths -Werror
+  ghc-options: -fwrite-ide-info -hiedir=.hie -fplugin=RecordDotPreprocessor -Wall -Wcompat -Widentities -fhide-source-paths -Werror -Wwarn=ambiguous-fields
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -502,7 +502,7 @@ test-suite static-offer-driver-app-tests
       UndecidableInstances
       StandaloneDeriving
       PackageImports
-  ghc-options: -fwrite-ide-info -hiedir=.hie -fplugin=RecordDotPreprocessor -Wall -Werror
+  ghc-options: -fwrite-ide-info -hiedir=.hie -fplugin=RecordDotPreprocessor -Wall -Werror -Wwarn=ambiguous-fields
   build-depends:
       QuickCheck
     , aeson
@@ -531,6 +531,7 @@ test-suite static-offer-driver-app-tests
     , servant-openapi3
     , servant-server
     , singletons
+    , singletons-base
     , static-offer-driver-app
     , stm
     , string-conversions
